@@ -7,6 +7,9 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.util.Hashtable;
 
@@ -126,36 +129,187 @@ public class ArtPanel extends JPanel
 	
 	private void setupLayout()
 	{
-		
+		appLayout.putConstraint(SpringLayout.NORTH, canvas, 50, SpringLayout.NORTH, this);
+		appLayout.putConstraint(SpringLayout.WEST, canvas, 50, SpringLayout.WEST, this);
+		appLayout.putConstraint(SpringLayout.NORTH, sliderPanel, 0, SpringLayout.NORTH, canvas);
+		appLayout.putConstraint(SpringLayout.WEST, sliderPanel, 20, SpringLayout.EAST, buttonPanel);
+		appLayout.putConstraint(SpringLayout.NORTH, buttonPanel, 0, SpringLayout.NORTH, canvas);
+		appLayout.putConstraint(SpringLayout.WEST, buttonPanel, 40, SpringLayout.EAST, canvas);
 	}
 	
 	private void setupListeners()
 	{
+		rectangleButton.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				Rectangle rectangle = createRectangle();
+				canvas.addShape(rectangle);
+			}
+		});
 		
+		triangleButton.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				Polygon triangle = createPolygon(3);
+				canvas.addShape(triangle);
+			}
+		});
+		
+		polygonButton.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				Polygon polygon = createPolygon(currentEdgeCount);
+				canvas.addShape(polygon);
+			}
+		});
+		
+		ellipseButton.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				Ellipse2D ellipse = createEllipse();
+				canvas.addShape(ellipse);
+			}
+		});
+		
+		clearButton.addActionListener(click -> canvas.clear());
+		
+		saveButton.addActionListener(click -> canvas.save());
+		
+		colorButton.addActionListener(click -> canvas.changeBackground());
+		
+		scaleSlider.addChangeListener(new ChangeListener() 
+		{
+			@Override
+			public void stateChanged(ChangeEvent e)
+			{
+				if(!scaleSlider.getValueIsAdjusting())
+				{
+					currentScale = scaleSlider.getValue();
+				}
+			}
+		});
+		
+		edgeSlider.addChangeListener(new ChangeListener() 
+		{
+			@Override
+			public void stateChanged(ChangeEvent e)
+			{
+				if(!edgeSlider.getValueIsAdjusting())
+				{
+					currentEdgeCount = edgeSlider.getValue();
+				}
+			}
+		});
+		
+		canvas.addMouseMotionListener(new MouseMotionListener()
+		{
+			public void mouseDragged(MouseEvent drag)
+			{
+				int x = drag.getX();
+				int y = drag.getY();
+				
+				canvas.drawOnCanvas(x, y, currentEdgeCount);
+			}
+					
+			@Override
+			public void mouseMoved(MouseEvent move)
+			{
+			}
+		});
+		
+		canvas.addMouseListener(new MouseListener() 
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{}
+			
+			@Override
+			public void mousePressed(MouseEvent e)
+			{}
+			
+			@Override
+			public void mouseReleased(MouseEvent e)
+			{
+				canvas.resetPoint();
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{}
+			
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				canvas.resetPoint();
+			}
+		});
 	}
 	
 	private boolean coinFlip()
 	{
-		return (int) (Math.random() * 2) == 0;
+		return (int)(Math.random() * 2) == 0;
 	}
 	
 	private Polygon createPolygon(int sides)
 	{
 		Polygon currentShape = new Polygon();
 		
-		int originX = (int) (Math.random() * 600);
-		int originY = (int) (Math.random() * 600);
+		int originX = (int)(Math.random() * 600);
+		int originY = (int)(Math.random() * 600);
 		
-		for (int index = 0; index < sides; index++)
+		for(int index = 0; index < sides; index++)
 		{
 			int minus = coinFlip() ? -1 : 1;
-			int shiftX = (int) (Math.random() * currentScale) * minus;
+			int shiftX = (int)(Math.random()  * currentScale) * minus;
 			minus = coinFlip() ? -1 : 1;
-			int shiftY = (int) (Math.random() * currentScale) * minus;
+			int shiftY = (int)(Math.random() * currentScale) * minus;
 			currentShape.addPoint(originX + shiftX, originY + shiftY);
 		}
 		
 		return currentShape;
 	}
+	
+	private Rectangle createRectangle()
+	{
+		Rectangle currentRectangle;
+		
+		int cornerX = (int)(Math.random() * 600);
+		int cornerY = (int)(Math.random() * 600);
+		int width = (int)(Math.random() * currentScale + 1);
+		if(coinFlip())
+		{
+			currentRectangle = new Rectangle(cornerX, cornerY, width, width);
+		}
+		else
+		{
+			int height = (int)(Math.random() * currentScale) + 1;
+			currentRectangle = new Rectangle(cornerX, cornerY, width, height);
+		}
+		
+		return currentRectangle;
+	}
+	
+	private Ellipse2D createEllipse()
+	{
+		Ellipse2D ellipse = new Ellipse2D.Double();
+		
+		int cornerX = (int)(Math.random() * 600);
+		int cornerY = (int)(Math.random() * 600);
+		double width = Math.random() * currentScale + 1;
+		if(coinFlip())
+		{
+			ellipse.setFrame(cornerX, cornerY, width, width);
+		}
+		else
+		{
+			double height = Math.random() * currentScale + 1;
+			ellipse.setFrame(cornerX, cornerY, width, height);
+		}
+		
+		return ellipse;
+	}
 }
-
